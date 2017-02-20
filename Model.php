@@ -1,5 +1,6 @@
 <?php
 namespace Plugin\Model;
+use App;
 use Plugin\Cache\Cache;
 use Plugin\Pagination\Pagination;
 use ArrayAccess;
@@ -60,7 +61,9 @@ abstract class Model implements ArrayAccess {
   // Offsets
   protected $Pagination = null;
 
-  final protected function __construct() {}
+  final protected function __construct() {
+    $this->is_cacheable = !App::$debug;
+  }
 
   public function setPagination(Pagination $Pagination) {
     $this->Pagination = $Pagination;
