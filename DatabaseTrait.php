@@ -115,12 +115,12 @@ trait DatabaseTrait {
     $where = [];
     if ($conditions) {
       $params = $conditions;
+      $i = 0;
       foreach ($params as $k => $c) {
         if (is_array($c)) {
           if ($c) {
             // Собриаем параметры с идентификаторами
             $id_params = [];
-            $i = 0;
             foreach ($c as $v) {
               $id_params[] = sprintf('ID%d', ++$i);
             }
