@@ -29,7 +29,7 @@ use Closure;
  * </code>
  */
 abstract class Model implements ArrayAccess {
-  use DatabaseTrait, IdTrait, ArrayTrait;
+  use DatabaseTrait, IdTrait, ArrayTrait, OptionTrait;
 
   /**
    * @property bool $is_new
