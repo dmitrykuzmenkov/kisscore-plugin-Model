@@ -117,12 +117,13 @@ trait DatabaseTrait {
    */
   protected function dbInsertId() {
     $result = static::dbQuery('SELECT LAST_INSERT_ID() AS `id`');
-    if ($resut) {
-      return $result['id'];
+    if ($result && isset($result[0])) {
+      return $result[0]['id'];
     }
+
     return 0;
   }
-
+  
   /**
    * Формирование условия WHERE по передаваемым параметрам
    *
