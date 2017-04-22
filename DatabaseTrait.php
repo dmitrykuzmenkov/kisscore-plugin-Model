@@ -51,20 +51,27 @@ trait DatabaseTrait {
     return static::$table;
   }
 
-  public static function fields() {
+  /**
+   * @param bool $with_value Include mysql default values or no
+   * @return array
+   */
+  public static function fields($with_values = false) {
+    static $keys = [];
     static $fields = [];
     if (!$fields) {
       $func = function () {
         $fields = [];
         if ($data = static::dbQuery('DESCRIBE ' . static::table())) {
-          $fields = array_column($data, 'Field');
+          $fields = array_column($data, 'Default', 'Field');
         }
         return $fields;
       };
       $fields = App::$debug ? $func() : Cache::get('db:scheme:' . static::table(), $func);
+      $keys = array_keys($fields);
     }
-    return $fields;
+    return $with_values ? $fields : $keys;
   }
+
 
   /**
    * Выполнение запросов к базе данных
@@ -103,6 +110,17 @@ trait DatabaseTrait {
     $q = 'INSERT INTO ' . static::table()
       . ' SET ' . self::dbGetSqlStringByParams($params, ',');
     return static::dbQuery($q, $params);
+  }
+
+  /**
+   * Get last inserted id in case of auto_increment
+   */
+  protected function dbInsertId() {
+    $result = static::dbQuery('SELECT LAST_INSERT_ID() AS `id`');
+    if ($resut) {
+      return $result['id'];
+    }
+    return 0;
   }
 
   /**

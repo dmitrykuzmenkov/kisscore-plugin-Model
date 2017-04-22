@@ -179,6 +179,12 @@ abstract class Model implements ArrayAccess {
 
       $data['id'] = $this->id;
       $saved = $this->dbInsert($data);
+      
+      // If we used auto incremenented id
+      if (!$this->id) {
+        $this->id = (string) $this->dbInsertId();
+        $data['id'] = $this->id;
+      }
 
       // Дополняем нулл значениями
       $this->data = array_merge(array_fill_keys(static::fields(), null), $data);
@@ -257,6 +263,14 @@ abstract class Model implements ArrayAccess {
     }
 
     return self::$map[$key];
+  }
+
+  /**
+   * Get default values for current model
+   * @return array
+   */
+  public static function getDefault() {
+    return static::fields(true);
   }
 
   /**
