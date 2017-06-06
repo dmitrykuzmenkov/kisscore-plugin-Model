@@ -143,7 +143,7 @@ abstract class Model implements ArrayAccess {
    */
   public function save(array $data) {
     // Не пропускаем к базе возможно установленные левые ключи
-    $data = array_intersect_key($data, array_flip(static::fields()));
+    $data = array_intersect_key($this->appendDates($data), array_flip(static::fields()));
     $this->data = array_merge($this->data, $data);
 
     // Ничего на обновление нет?
@@ -199,6 +199,22 @@ abstract class Model implements ArrayAccess {
     $this->prepare($this->data);
 
     return $this;
+  }
+  
+  /** 
+   * @param array $data
+   * @return array
+   */
+  private function appendDates(array $data) {
+    if (!isset($data['updated_at'])) {
+      $data['updated_at'] = gmdate('Y-m-d H:i:s');
+    }
+
+    if ($this->is_new && !isset($data['created_at'])) {
+      $data['created_at'] = $data['updated_at'];
+    }
+
+    return $data;
   }
 
   /**
