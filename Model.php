@@ -179,7 +179,7 @@ abstract class Model implements ArrayAccess {
 
       $data['id'] = $this->id;
       $saved = $this->dbInsert($data);
-      
+
       // If we used auto incremenented id
       if (!$this->id) {
         $this->id = (string) $this->dbInsertId();
@@ -200,8 +200,8 @@ abstract class Model implements ArrayAccess {
 
     return $this;
   }
-  
-  /** 
+
+  /**
    * @param array $data
    * @return array
    */
@@ -278,6 +278,28 @@ abstract class Model implements ArrayAccess {
       self::$map[$key] = (new static)->load($id);
     }
 
+    return self::$map[$key];
+  }
+
+  /**
+   * That method performs direct query to database for update purspose without any caching mechanisms
+   *
+   * @param int $id
+   * @return void
+   */
+  public static function getForUpdate($id) {
+    $rows = static::dbQuery(
+      'SELECT * FROM ' . static::table() . ' WHERE id = :id FOR UPDATE',
+      ['id' => $id]
+    );
+
+    if (!$rows || !isset($rows[0])) {
+      throw new \Exception('Cant find row with requested id in database for update');
+    }
+    
+    $key = static::class . '-' . $id;
+    self::$map[$key] = (new static)->loadByData($rows[0]);
+    
     return self::$map[$key];
   }
 
@@ -363,12 +385,17 @@ abstract class Model implements ArrayAccess {
    */
   public function load($id) {
     if ($rows = static::getByIds([$id])) {
-      $this->is_new = false;
-      $this->id = (string) $id;
-      $row = array_shift($rows);
-      $this->prepare($row);
-      $this->data = $row;
+      $this->loadByData(array_shift($rows));
     }
+    return $this;
+  }
+
+  protected function loadByData(array $data) {
+    $this->is_new = false;
+    $this->id = (string) $data['id'];
+    $this->prepare($data);
+    $this->data = $data;
+
     return $this;
   }
 
