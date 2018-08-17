@@ -349,7 +349,7 @@ trait DatabaseTrait {
    * @return array [id => data, ...]
    */
   protected function dbGetByFields(array $fields, $row, array $values) {
-    assert('sizeof($values) > 0');
+    assert(sizeof($values) > 0);
 
     $q = 'SELECT ' . self::dbGetSqlStringByParams($fields)
       . ' FROM ' . static::table()
@@ -393,7 +393,7 @@ trait DatabaseTrait {
   }
 
   protected function dbGetPaginated($query, array $params = []) {
-    assert('is_string($query)');
+    assert(is_string($query));
     $total = $this->Pagination ? $this->Pagination->getTotal() : 0;
     $query = 'SELECT %s FROM ' . static::table() . ' ' . $query . ' LIMIT %d, %d';
 

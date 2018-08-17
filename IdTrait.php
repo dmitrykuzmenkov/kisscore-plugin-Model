@@ -39,8 +39,8 @@ trait IdTrait {
    *
    * @return string
    */
-  public function getAlphaId() {
-    return static::encodeId($this->getId());
+  public function getAlphaId($id = null) {
+    return static::encodeId($id ?: $this->getId());
   }
 
   /**
@@ -76,7 +76,7 @@ trait IdTrait {
    * @return array
    */
   protected static function unpackIds($id_string) {
-    assert("is_string(\$id_string)");
+    assert(is_string($id_string));
     return $id_string ? array_map('trim', explode(',', $id_string)) : [];
   }
 }
