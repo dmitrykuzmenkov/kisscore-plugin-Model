@@ -174,7 +174,8 @@ abstract class Model implements ArrayAccess {
       if (isset($data['id'])) {
         $this->id = (string) $data['id'];
       }
-      if (!$this->id)
+
+      if (!$this->id && !static::isIncrementalId())
         $this->id = static::generateId();
 
       $data['id'] = $this->id;

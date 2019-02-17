@@ -15,7 +15,8 @@ trait DatabaseTrait {
   protected static
     $shard_id     = 0,
     $table        = '',
-    $fields       = [];
+    $fields       = [],
+    $incremental_id = false;
 
   /**
    * Получение строки для sql-строки с параметрами, поддерживает как
@@ -60,16 +61,26 @@ trait DatabaseTrait {
     static $fields = [];
     if (!$fields) {
       $func = function () {
+        $incremental_id = false;
         $fields = [];
         if ($data = static::dbQuery('DESCRIBE ' . static::table())) {
           $fields = array_column($data, 'Default', 'Field');
+          if ($data[0]['Field'] === 'id' && $data[0]['Extra'] === 'auto_increment') {
+            $incremental_id = true;
+          }
+          
         }
-        return $fields;
+        return [$fields, $incremental_id];
       };
-      $fields = App::$debug ? $func() : Cache::get('db:scheme:' . static::table(), $func);
+      list($fields, static::$incremental_id) = 
+        App::$debug ? $func() : Cache::get('db:scheme:' . static::table(), $func);
       $keys = array_keys($fields);
     }
     return $with_values ? $fields : $keys;
+  }
+
+  protected function isIncrementalId() {
+    return static::$incremental_id;
   }
 
 
