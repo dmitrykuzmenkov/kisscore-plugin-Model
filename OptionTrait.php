@@ -2,8 +2,8 @@
 namespace Plugin\Model;
 
 trait OptionTrait {
-  public static function getOptionList($id, $cond = []) {
-    $list = self::create()->getList($cond);
+  public static function getOptionList($id, $cond = [], $sorting = []) {
+    $list = self::create()->getList($cond, $sorting);
 
     $ids = [];
     if (is_array($id)) {
