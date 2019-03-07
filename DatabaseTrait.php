@@ -141,12 +141,18 @@ trait DatabaseTrait {
    * @param array &$conditions
    * @return array
    */
+
   protected function dbGetWhere(array &$conditions) {
     $where = [];
     if ($conditions) {
       $params = $conditions;
       $i = 0;
       foreach ($params as $k => $c) {
+        // If we have typed field
+        $t = '';
+        if (false !== stripos($c, ':')) {
+          [$k, $t] = explode(':', $c);
+        }
         if (is_array($c)) {
           if ($c) {
             // Собриаем параметры с идентификаторами
@@ -154,14 +160,40 @@ trait DatabaseTrait {
             foreach ($c as $v) {
               $id_params[] = sprintf('ID%d', ++$i);
             }
+
             $conditions = array_merge($conditions, array_combine($id_params, $c));
-            $where[] = ' `' . $k . '` IN (:' . implode(', :', $id_params) . ') ';
+            if ($t === 'range') {
+              $where[] = ' (`' . $k . '` BETWEEN :' . implode(' AND :', $id_params) . ') ';
+            } else {
+              $where[] = ' `' . $k . '` IN (:' . implode(', :', $id_params) . ') ';
+            }
           } else {
             $where[] = ' `'. $k . '` = NULL ';
           }
           unset($conditions[$k]);
         } else {
-          $where[] = ' `' . $k . '` = :' . $k . ' ';
+          // Bash like style
+          // See bash scripting
+          switch ($t) {
+            case 'gt':
+              $op = '>';
+              break;
+            case 'ge':
+              $op = '>=';
+              break;
+            case 'lt':
+              $op = '<';
+              break;
+            case 'le':
+              $op = '<=';
+              break;
+            case 'ne':
+              $op = '!=';
+              break;
+            default:
+              $op = '=';
+          }
+          $where[] = ' `' . $k . '` ' . $op  . ' :' . $k . ' ';
         }
       }
     }
