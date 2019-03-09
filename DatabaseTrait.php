@@ -150,8 +150,8 @@ trait DatabaseTrait {
       foreach ($params as $k => $c) {
         // If we have typed field
         $t = '';
-        if (false !== stripos($c, ':')) {
-          [$k, $t] = explode(':', $c);
+        if (false !== stripos($k, ':')) {
+          [$k, $t] = explode(':', $k);
         }
         if (is_array($c)) {
           if ($c) {
