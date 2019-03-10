@@ -94,7 +94,19 @@ trait DatabaseTrait {
    * @throws Exception
    */
   protected static function dbQuery($query, array $params = []) {
-    return DB::query($query, $params, static::dbShardId($params));
+    return DB::query($query, static::adaptParams($params), static::dbShardId($params));
+  }
+
+  protected static function adaptParams(array $params) {
+    return array_combine(
+      array_map(function ($key) {
+        if (false !== stripos($key, ':')) {
+          return strtok($key, ':');
+        }
+        return $key;
+      }, array_keys($params)),
+      $params
+    );
   }
 
   /**
