@@ -15,6 +15,7 @@ trait DatabaseTrait {
   protected static
     $shard_id     = 0,
     $table        = '',
+    $id_field     = 'id',
     $fields       = [],
     $incremental_id = false;
 
@@ -65,10 +66,9 @@ trait DatabaseTrait {
         $fields = [];
         if ($data = static::dbQuery('DESCRIBE ' . static::table())) {
           $fields = array_column($data, 'Default', 'Field');
-          if ($data[0]['Field'] === 'id' && $data[0]['Extra'] === 'auto_increment') {
+          if ($data[0]['Field'] === static::$id_field && $data[0]['Extra'] === 'auto_increment') {
             $incremental_id = true;
           }
-          
         }
         return [$fields, $incremental_id];
       };
@@ -141,7 +141,7 @@ trait DatabaseTrait {
   protected function dbInsertId() {
     $result = static::dbQuery('SELECT LAST_INSERT_ID() AS `id`');
     if ($result && isset($result[0])) {
-      return $result[0]['id'];
+      return $result[0][static::$id_field];
     }
 
     return 0;
@@ -346,7 +346,7 @@ trait DatabaseTrait {
    * @return Database::execute()
    */
   protected function dbDeleteByIds(array $ids) {
-    return $this->dbDeleteByRowValues('id', $ids);
+    return $this->dbDeleteByRowValues(static::$id_field, $ids);
   }
 
   /**
@@ -381,7 +381,7 @@ trait DatabaseTrait {
    */
   protected function dbGetByIds(array $fields, array $ids) {
 
-    return $this->dbGetByFields($fields, 'id', $ids);
+    return $this->dbGetByFields($fields, static::$id_field, $ids);
   }
 
   /**
@@ -394,7 +394,7 @@ trait DatabaseTrait {
    * @return array данные выборки
    */
   protected function dbGetById(array $fields, $id) {
-    return $this->dbGetByField($fields, 'id', $id);
+    return $this->dbGetByField($fields, static::$id_field, $id);
   }
 
   /**
@@ -411,7 +411,7 @@ trait DatabaseTrait {
       . ' WHERE `' . $row . '` IN (' . trim(str_repeat('?, ', sizeof($values)), ', ') . ')';
       ;
     return ($data = self::dbQuery($q, $values))
-      ? array_combine(array_column($data, 'id'), $data)
+      ? array_combine(array_column($data, static::$id_field), $data)
       : $data;
   }
 
@@ -439,7 +439,7 @@ trait DatabaseTrait {
       . ' WHERE `id` = :id'
       . (isset($prev_value) ? ' AND `' . $field . '` = :prev_value' : '');
 
-    $params = ['id' => $id];
+    $params = [static::$id_field => $id];
 
     if (isset($prev_value))
       $params['prev_value'] = $prev_value;
@@ -489,7 +489,7 @@ trait DatabaseTrait {
       $limit = $this->Pagination->getLimit();
     }
     return static::getByIds(
-      $total ? array_column($this->dbSelect(['id'], $conditions, $order, $offset, $limit), 'id') : []
+      $total ? array_column($this->dbSelect([static::$id_field], $conditions, $order, $offset, $limit), static::$id_field) : []
     );
   }
 }

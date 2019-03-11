@@ -160,31 +160,31 @@ abstract class Model implements ArrayAccess {
     // Валидация прошла успешно, обновляем или вставляем новую запись
     if (!$this->is_new) {
       // Если не нужно обновлять главный ключ
-      if (isset($this->data['id']) && $this->id === (string) $this->data['id'])
-        unset($this->data['id']);
+      if (isset($this->data[static::$id_field]) && $this->id === (string) $this->data[static::$id_field])
+        unset($this->data[static::$id_field]);
 
       $saved = $this->dbUpdateByIds($data, [$this->id]);
 
-      $this->data['id'] = $this->id;
+      $this->data[static::$id_field] = $this->id;
 
       // Обновим кэш завершающим этапом
       // В кэш обработанные данные через prepare не попадают
       Cache::remove(static::class . ':' . $this->getId());
     } else {
-      if (isset($data['id'])) {
-        $this->id = (string) $data['id'];
+      if (isset($data[static::$id_field])) {
+        $this->id = (string) $data[static::$id_field];
       }
 
       if (!$this->id && !static::isIncrementalId())
         $this->id = static::generateId();
 
-      $data['id'] = $this->id;
+      $data[static::$id_field] = $this->id;
       $saved = $this->dbInsert($data);
 
       // If we used auto incremenented id
       if (!$this->id) {
         $this->id = (string) $this->dbInsertId();
-        $data['id'] = $this->id;
+        $data[static::$id_field] = $this->id;
       }
 
       // Дополняем нулл значениями
@@ -291,7 +291,7 @@ abstract class Model implements ArrayAccess {
   public static function getForUpdate($id) {
     $rows = static::dbQuery(
       'SELECT * FROM ' . static::table() . ' WHERE id = :id FOR UPDATE',
-      ['id' => $id]
+      [static::$id_field => $id]
     );
 
     if (!$rows || !isset($rows[0])) {
@@ -393,7 +393,7 @@ abstract class Model implements ArrayAccess {
 
   protected function loadByData(array $data) {
     $this->is_new = false;
-    $this->id = (string) $data['id'];
+    $this->id = (string) $data[static::$id_field];
     $this->prepare($data);
     $this->data = $data;
 
