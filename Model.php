@@ -413,26 +413,42 @@ abstract class Model implements ArrayAccess {
    * </code>
    */
   protected function validate($data) {
-    foreach ($this->rules() as $field => $rule) {
+    foreach ($this->rules() as $field_key => $rule) {
+      $fields = array_map('trim', explode(',', $field_key));
       if ($this->is_new) { // Если новая запись
         // Еще нет такого поля? Пишем туда нуль и валидируем
-        if (!isset($data[$field]))
-          $data[$field] = null;
+        foreach ($fields as $field) {
+          if (!isset($data[$field]))
+            $data[$field] = null;
+        }
       } else { // Идет обновление
         // Не указано поле? Просто пропускаем правило
-        if (!array_key_exists($field, $data))
+        $skip = true;
+        foreach ($fields as $field) {
+          if (array_key_exists($field, $data)) {
+            $skip = false;
+            break;
+          }
+        }
+        if ($skip)
           continue;
       }
 
-      $res = $rule($data[$field]);
+      $args = [];
+      foreach ($fields as $field) {
+        $args[] = $data[$field];
+      }
+      $res = $rule(...$args);
 
       // Не изменилось поле? удаляем
-      if ($data[$field] === null)
-        unset($data[$field]);
+      foreach ($fields as $field) {
+        if ($data[$field] === null)
+          unset($data[$field]);
+      }
 
       // Если результат не TRUE, то там ошибка
       if (isset($res) && true !== $res) {
-        $this->addError($field . '_' . $res);
+        $this->addError(implode('_', $fields) . '_' . $res);
       }
     }
     return $this;
