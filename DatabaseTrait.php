@@ -139,7 +139,7 @@ trait DatabaseTrait {
    * Get last inserted id in case of auto_increment
    */
   protected function dbInsertId() {
-    $result = static::dbQuery('SELECT LAST_INSERT_ID() AS `id`');
+    $result = static::dbQuery('SELECT LAST_INSERT_ID() AS `' . static::$id_field . '`');
     if ($result && isset($result[0])) {
       return $result[0][static::$id_field];
     }
@@ -319,7 +319,7 @@ trait DatabaseTrait {
     }
     $q = 'UPDATE ' . static::table()
       . ' SET ' . self::dbGetSqlStringByParams($params, ',', $incremental)
-      . ' WHERE `id` IN (:' . implode(', :', $id_params) . ')';
+      . ' WHERE `' . static::$id_field . '` IN (:' . implode(', :', $id_params) . ')';
 
     return static::dbQuery($q, array_merge($params, array_combine($id_params, $ids)));
   }
@@ -436,7 +436,7 @@ trait DatabaseTrait {
   protected function dbToggleField($field, $id, $prev_value = null) {
     $q = 'UPDATE ' . static::table()
       . ' SET `' . $field . '` = IF (`' . $field . '` = 1, 0, 1)'
-      . ' WHERE `id` = :id'
+      . ' WHERE `' . static::$id_field . '` = :id'
       . (isset($prev_value) ? ' AND `' . $field . '` = :prev_value' : '');
 
     $params = [static::$id_field => $id];
