@@ -205,8 +205,9 @@ trait DatabaseTrait {
             default:
               $op = '=';
           }
-          $where[] = ' `' . $k . '` ' . $op  . ' :' . $k . ' ';
-        }
+          $where[] = ' `' . $k . '` ' . $op  . ' :' . $k . '_' . $t . ' ';
+          $conditions[$k . '_' . $t] = $conditions[$k . ':' . $t];
+          unset($conditions[$k . ':' . $t]);        }
       }
     }
     return $where;
