@@ -186,6 +186,7 @@ trait DatabaseTrait {
         } else {
           // Bash like style
           // See bash scripting
+          $field = $k . '_' . $t;
           switch ($t) {
             case 'gt':
               $op = '>';
@@ -204,10 +205,14 @@ trait DatabaseTrait {
               break;
             default:
               $op = '=';
+              $field = $k;
           }
-          $where[] = ' `' . $k . '` ' . $op  . ' :' . $k . '_' . $t . ' ';
-          $conditions[$k . '_' . $t] = $conditions[$k . ':' . $t];
-          unset($conditions[$k . ':' . $t]);        }
+          $where[] = ' `' . $k . '` ' . $op  . ' :' . $field . ' ';
+          if ($field !== $k) {
+            $conditions[$k . '_' . $t] = $conditions[$k . ':' . $t];
+            unset($conditions[$k . ':' . $t]);
+          }
+        }
       }
     }
     return $where;
