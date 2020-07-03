@@ -290,7 +290,7 @@ abstract class Model implements ArrayAccess {
    */
   public static function getForUpdate($id) {
     $rows = static::dbQuery(
-      'SELECT * FROM ' . static::table() . ' WHERE id = :id FOR UPDATE',
+      'SELECT * FROM ' . static::table() . ' WHERE ' . static::$id_field . ' = :' . static::$id_field . ' FOR UPDATE',
       [static::$id_field => $id]
     );
 
