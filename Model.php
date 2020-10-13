@@ -124,6 +124,14 @@ abstract class Model implements ArrayAccess {
    * @return $this
    */
   public function increment(array $counters, array $ids = []) {
+    if ($this->is_cacheable) {
+      Cache::remove(array_map(
+        function ($item) { 
+          return static::class . ':' . $item; 
+        },
+        $ids ?: [$this->getId()]
+      ));
+    }
     $this->dbUpdateByIds($counters, $ids ?: [$this->getId()], true);
     return $this;
   }
